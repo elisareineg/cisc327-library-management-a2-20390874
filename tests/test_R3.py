@@ -50,5 +50,13 @@ def test_borrowing_record():
     assert success == False
     assert "already borrowed" in message.lower()
 
+def test_maximum_borrowing_limit():
+    """Test that patron cannot borrow more than 5 books."""
+    # Assuming patron 123460 has already borrowed 5 books
+    success, message = borrow_book_by_patron("123460", 9)
+    print(f"Result: {message}")
+    
+    assert success == False
+    assert "maximum borrowing limit" in message.lower()
 
     
