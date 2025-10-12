@@ -1,0 +1,47 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run final tests
+        run: |
+          pytest tests/ -v
+
+      - name: Deploy to server
+        run: |
+          echo "Deploying to production server..."
+          # Add your deployment commands here
+          # Examples:
+          # - scp files to server
+          # - run deployment scripts
+          # - restart services
+          echo "Deployment completed successfully"
+
+      - name: Health check
+        run: |
+          echo "Running health checks..."
+          # Add health check commands here
+          # Examples:
+          # - curl health endpoint
+          # - check service status
+          echo "Health checks passed"

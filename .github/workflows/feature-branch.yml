@@ -1,0 +1,48 @@
+name: Feature Branch Testing
+
+on:
+  push:
+    branches: ["feature/*", "bugfix/*", "hotfix/*"]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-feature:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=library_service --cov-report=term-missing
+
+      - name: Check test coverage
+        run: |
+          pytest tests/ --cov=library_service --cov-fail-under=80
+
+      - name: Run specific function tests
+        run: |
+          # Run tests for specific functions based on branch name
+          if [[ "${{ github.ref }}" == *"feature/R4"* ]]; then
+            pytest tests/test_R4.py -v
+          elif [[ "${{ github.ref }}" == *"feature/R5"* ]]; then
+            pytest tests/test_R5.py -v
+          elif [[ "${{ github.ref }}" == *"feature/R6"* ]]; then
+            pytest tests/test_R6.py -v
+          elif [[ "${{ github.ref }}" == *"feature/R7"* ]]; then
+            pytest tests/test_R7.py -v
+          else
+            pytest tests/ -v
+          fi
