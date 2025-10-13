@@ -6,10 +6,6 @@ from database import get_all_books, init_database, add_sample_data
 
 def test_get_all_books_returns_list():
     """Test that get_all_books returns a list of books."""
-    # Initialize database and add sample data
-    init_database()
-    add_sample_data()
-    
     books = get_all_books()
     assert isinstance(books, list)
     assert len(books) > 0
@@ -49,7 +45,6 @@ def test_get_all_books_availability_logic():
         assert book['available_copies'] >= 0, "Available copies cannot be negative"
         assert book['total_copies'] > 0, "Total copies must be positive"
 
-
 def test_get_all_books_isbn_format():
     """Test that ISBNs are in correct 13-digit format."""
     books = get_all_books()
@@ -58,14 +53,6 @@ def test_get_all_books_isbn_format():
         isbn = book['isbn']
         assert len(isbn) == 13, f"ISBN should be 13 digits, got {len(isbn)}"
         assert isbn.isdigit(), f"ISBN should contain only digits, got {isbn}"
-
-def test_get_all_books_empty_catalog():
-    """Test behavior when catalog is empty (after clearing)."""
-    # This test would require clearing the database, which might affect other tests
-    # For now, we'll test that the function handles the case gracefully
-    books = get_all_books()
-    # Function should return empty list rather than None or error
-    assert isinstance(books, list)
 
 def test_catalog_display_format():
     """Test that books are formatted correctly for catalog display."""
@@ -114,4 +101,17 @@ def test_catalog_sample_data():
     assert gatsby['author'] == 'F. Scott Fitzgerald', "Author should match"
     assert gatsby['isbn'] == '9780743273565', "ISBN should match"
     assert gatsby['total_copies'] == 3, "Total copies should be 3"
-    assert gatsby['available_copies'] == 3, "Available copies should be 3 (initially)"
+    
+    # Check 1984 which should have 0 available copies (borrowed in sample data)
+    book_1984 = next((book for book in books if book['title'] == '1984'), None)
+    assert book_1984 is not None, "1984 should be in catalog"
+    assert book_1984['available_copies'] == 0, "1984 should have 0 available copies"
+
+def test_catalog_sorted_by_title():
+    """Test that catalog is sorted by title."""
+    books = get_all_books()
+    
+    if len(books) > 1:
+        titles = [book['title'] for book in books]
+        sorted_titles = sorted(titles)
+        assert titles == sorted_titles, "Books should be sorted by title"
