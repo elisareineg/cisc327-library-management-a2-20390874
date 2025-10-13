@@ -8,7 +8,7 @@ from library_service import (
 
 def test_successful_book_return():
     """Test successful book return with valid patron ID and book ID."""
-    result = return_book_by_patron("P001", "B001")
+    result = return_book_by_patron("123457", 1)
     print(f"Result: {result}")
     
     success, message = result
@@ -26,33 +26,33 @@ def test_invalid_patron_id():
 
 def test_invalid_book_id():
     """Test return with invalid book ID."""
-    success, message = return_book_by_patron("P001", "INVALID")
+    success, message = return_book_by_patron("123456", 999)
     
     assert success == False
-    assert "invalid book id" in message.lower()
+    assert "book not found" in message.lower()
 
 def test_book_not_borrowed_by_patron():
     """Test returning a book that was not borrowed by the patron."""
-    success, message = return_book_by_patron("P001", "B002")
+    success, message = return_book_by_patron("123456", 1)
     
     assert success == False
-    assert "book was not borrowed by this patron" in message.lower()
+    assert "not borrowed" in message.lower()
 
 def test_empty_or_none_inputs():
     """Test return with empty or None inputs."""
     # Test empty patron ID
-    success, message = return_book_by_patron("", "B001")
+    success, message = return_book_by_patron("", 1)
     assert success == False
-    assert ("patron id cannot be empty" in message.lower() or "invalid" in message.lower())
+    assert "invalid patron id" in message.lower()
     
     # Test None patron ID
-    success, message = return_book_by_patron(None, "B001")
+    success, message = return_book_by_patron(None, 1)
     assert success == False
-    assert ("patron id cannot be none" in message.lower() or "invalid" in message.lower())
+    assert "invalid patron id" in message.lower()
 
 def test_book_with_late_fee():
     """Test returning an overdue book that incurs late fees."""
-    success, message = return_book_by_patron("P001", "B003")
+    success, message = return_book_by_patron("123456", 3)
     
     assert success == True
     assert "late fee" in message.lower()
@@ -61,10 +61,10 @@ def test_book_with_late_fee():
 def test_already_returned_book():
     """Test returning a book that has already been returned."""
     # First return the book
-    return_book_by_patron("P001", "B001")
+    return_book_by_patron("123456", 3)
     
     # Try to return it again
-    success, message = return_book_by_patron("P001", "B001")
+    success, message = return_book_by_patron("123456", 3)
     
     assert success == False
-    assert "book has already been returned" in message.lower()
+    assert "not borrowed" in message.lower()

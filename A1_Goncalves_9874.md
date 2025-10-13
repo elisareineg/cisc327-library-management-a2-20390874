@@ -2,11 +2,11 @@
 | :------------ | :-------------------: | ----------------------------------------------------------------------------------------: |
 | R1            |  Partially Complete   | ISBN digit validation only checks length but not if it's solely numeric (accepts letters) |
 | R2            |       Complete        |                                                                                      None |
-| R3            |       Complete        |                                                                                      None |
-| R4            |    Not Implemented    |                             Return book functionality, validation logic, database updates |
-| R5            |    Not Implemented    |                                  Late fee calculation logic, date handling, fee structure |
-| R6            |    Not Implemented    |                                 Search functionality, catalog querying, result formatting |
-| R7            |    Not Implemented    |                              Patron status reporting, data aggregation, report generation |
+| R3            |  Partially Complete   |                     Missing duplicate borrowing check (patron can borrow same book twice) |
+| R4            |       Complete        |                                                                                      None |
+| R5            |       Complete        |                                                                                      None |
+| R6            |       Complete        |                                                                                      None |
+| R7            |       Complete        |                                                                                      None |
 
 # Summary of Test Cases
 
@@ -19,7 +19,7 @@
 - **ISBN Format Validation**: Tests that ISBNs containing non-numeric characters are rejected with "isbn must be a 13-digit number" error
 - **Copies Validation**: Tests that negative copies, zero copies, and non-integer copies are rejected with appropriate error messages
 
-\_Note: R1 is partially complete. The core functionality works, but there are minor issues: ISBN validation only checks length (13 characters) but doesn't validate that all characters are digits - it would accept invalid ISBNs like "123456789abcd" or "123456789-123".
+_Note: R1 is partially complete. The core functionality works, but ISBN validation only checks length (13 characters) and doesn't validate that all characters are digits - it would accept invalid ISBNs like "123456789abcd" or "123456789-123"._
 
 ## R2
 
@@ -45,7 +45,7 @@
 
 ## R4
 
-_Note: The return book functionality has not been implemented, but comprehensive test cases have been created to define expected behavior when the function is developed._
+_Note: The return book functionality has been fully implemented with proper validation, database updates, and late fee integration._
 
 - **Successful Book Return**: Tests successful return of a book with valid patron ID and book ID, expecting "successfully returned" message
 - **Invalid Patron ID**: Tests return with invalid patron ID, expecting "invalid patron id" error
@@ -57,7 +57,7 @@ _Note: The return book functionality has not been implemented, but comprehensive
 
 ## R5
 
-_Note: The late fee calculation functionality has not been implemented, but comprehensive test cases have been created to define expected behavior when the function is developed._
+_Note: The late fee calculation functionality has been fully implemented with proper fee structure, date handling, and maximum cap validation._
 
 - **Not Overdue**: Tests late fee calculation for books within 14-day borrowing period (fee = $0.00)
 - **1 Day Overdue**: Tests late fee calculation for 1 day overdue (fee = $0.50)
@@ -71,7 +71,7 @@ _Note: The late fee calculation functionality has not been implemented, but comp
 
 ## R6
 
-_Note: The search books functionality has not been implemented, but comprehensive test cases have been created to define expected behavior when the function is developed._
+_Note: The search books functionality has been fully implemented with support for title, author, and ISBN searches with case-insensitive matching._
 
 - **Title Partial Match**: Tests searching for books by partial title match (case-insensitive)
 - **Author Partial Match**: Tests searching for books by partial author match (case-insensitive)
@@ -83,7 +83,7 @@ _Note: The search books functionality has not been implemented, but comprehensiv
 
 ## R7
 
-_Note: The patron status report functionality has not been implemented, but comprehensive test cases have been created to define expected behavior when the function is developed._
+_Note: The patron status report functionality has been fully implemented with comprehensive patron information, borrowed books tracking, overdue books detection, and total fines calculation._
 
 - **Valid Patron Report**: Tests getting status report with valid patron ID, verifying all required fields
 - **Non-existent Patron**: Tests getting status report for non-existent patron, expecting "patron not found" error
