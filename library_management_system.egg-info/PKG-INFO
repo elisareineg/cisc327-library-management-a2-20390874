@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: library-management-system
+Version: 1.0.0
+Summary: A library management system with automated testing
+Requires-Python: >=3.7
+Requires-Dist: Flask==2.3.3
+Requires-Dist: pytest==7.4.2
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
