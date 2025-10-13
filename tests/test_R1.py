@@ -3,19 +3,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from library_service import add_book_to_catalog
-from database import init_database, get_db_connection
-
-# Setup for clean test environment
-@pytest.fixture(autouse=True)
-def setup_database():
-    """Setup clean database for each test."""
-    init_database()
-    yield
-    # Cleanup after test
-    conn = get_db_connection()
-    conn.execute('DELETE FROM books WHERE isbn NOT IN ("9780743273565", "9780061120084", "9780451524935")')
-    conn.commit()
-    conn.close()
+from database import get_db_connection
 
 def test_add_book_to_catalog():
     """Test adding a book with valid input."""
