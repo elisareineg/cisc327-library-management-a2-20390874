@@ -29,5 +29,11 @@ jobs:
           pip install pytest
           pip install .
 
-      - name: Run tests
-        run: pytest || echo "Some tests failed, but continuing..."
+      - name: Run tests with coverage
+        run: pytest --cov=library_service --cov-report=xml --cov-report=html || echo "Some tests failed, but continuing..."
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
