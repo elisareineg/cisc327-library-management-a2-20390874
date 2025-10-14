@@ -67,16 +67,43 @@ def add_sample_data():
                 VALUES (?, ?, ?, ?, ?)
             ''', (title, author, isbn, copies, copies))
         
-        # Make 1984 unavailable by adding a borrow record
+        # Add borrow records for testing
+        # Patron 123456 borrows book 1 (The Great Gatsby) - not overdue
+        conn.execute('''
+            INSERT INTO borrow_records (patron_id, book_id, borrow_date, due_date)
+            VALUES (?, ?, ?, ?)
+        ''', ('123456', 1, 
+              (datetime.now() - timedelta(days=5)).isoformat(),
+              (datetime.now() + timedelta(days=9)).isoformat()))
+        
+        # Patron 123457 borrows book 1 (The Great Gatsby) - for R4 testing
+        conn.execute('''
+            INSERT INTO borrow_records (patron_id, book_id, borrow_date, due_date)
+            VALUES (?, ?, ?, ?)
+        ''', ('123457', 1, 
+              (datetime.now() - timedelta(days=5)).isoformat(),
+              (datetime.now() + timedelta(days=9)).isoformat()))
+        
+        # Patron 123456 borrows book 2 (To Kill a Mockingbird) - 1 day overdue
+        conn.execute('''
+            INSERT INTO borrow_records (patron_id, book_id, borrow_date, due_date)
+            VALUES (?, ?, ?, ?)
+        ''', ('123456', 2, 
+              (datetime.now() - timedelta(days=15)).isoformat(),
+              (datetime.now() - timedelta(days=1)).isoformat()))
+        
+        # Patron 123456 borrows book 3 (1984) - 7 days overdue
         conn.execute('''
             INSERT INTO borrow_records (patron_id, book_id, borrow_date, due_date)
             VALUES (?, ?, ?, ?)
         ''', ('123456', 3, 
-              (datetime.now() - timedelta(days=5)).isoformat(),
-              (datetime.now() + timedelta(days=9)).isoformat()))
+              (datetime.now() - timedelta(days=21)).isoformat(),
+              (datetime.now() - timedelta(days=7)).isoformat()))
         
-        # Update available copies for 1984
-        conn.execute('UPDATE books SET available_copies = 0 WHERE id = 3')
+        # Update available copies
+        conn.execute('UPDATE books SET available_copies = 1 WHERE id = 1')  # 3-2=1
+        conn.execute('UPDATE books SET available_copies = 2 WHERE id = 2')  # 2-0=2 (no borrows yet)
+        conn.execute('UPDATE books SET available_copies = 0 WHERE id = 3')  # 1-1=0
         
         conn.commit()
     

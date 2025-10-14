@@ -8,11 +8,11 @@ from database import get_db_connection
 
 def test_book_borrow_success():
     """Test borrowing a book with valid input."""
-    result = borrow_book_by_patron("123457", 1)  # The Great Gatsby
-    print(f"Result: {result}")  
+    result = borrow_book_by_patron("123458", 1)  # The Great Gatsby - use a new patron
+    print(f"Result: {result}")
     
     success, message = result
-    print(f"Success: {success}, Message: {message}")  
+    print(f"Success: {success}, Message: {message}")
     
     assert success == True
     assert "successfully borrowed" in message.lower()
@@ -70,11 +70,11 @@ def test_already_borrowed_same_book():
     """Test borrowing a book that the patron has already borrowed."""
     patron_id = "123459"
     
-    # First borrow
-    borrow_book_by_patron(patron_id, 1)
+    # First borrow - use book 2 which has available copies
+    borrow_book_by_patron(patron_id, 2)
     
     # Try to borrow again
-    success, message = borrow_book_by_patron(patron_id, 1)
+    success, message = borrow_book_by_patron(patron_id, 2)
     print(f"Result: {message}")
     
     assert success == False
