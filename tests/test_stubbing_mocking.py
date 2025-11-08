@@ -7,7 +7,7 @@ using both stubbing and mocking techniques.
 import pytest
 import sys
 import os
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -203,6 +203,135 @@ class TestPayLateFees:
         
         # Verify mock was called
         mock_gateway.process_payment.assert_called_once()
+    
+    def test_pay_late_fees_no_fee_info(self, mocker):
+        """
+        Test pay_late_fees when calculate_late_fee_for_book returns None or invalid.
+        Stubs: calculate_late_fee_for_book (returns None)
+        Mocks: payment_gateway.process_payment (should not be called)
+        """
+        # Create a mock payment gateway
+        mock_gateway = Mock(spec=PaymentGateway)
+        
+        # Stub calculate_late_fee_for_book to return None
+        mocker.patch(
+            'services.library_service.calculate_late_fee_for_book',
+            return_value=None
+        )
+        
+        # Call the function
+        success, message, transaction_id = pay_late_fees("123456", 1, mock_gateway)
+        
+        # Assertions
+        assert success is False
+        assert "Unable to calculate late fees" in message
+        assert transaction_id is None
+        
+        # Verify mock was NOT called
+        mock_gateway.process_payment.assert_not_called()
+    
+    def test_pay_late_fees_missing_fee_amount_key(self, mocker):
+        """
+        Test pay_late_fees when fee_info doesn't have 'fee_amount' key.
+        Stubs: calculate_late_fee_for_book (returns dict without fee_amount)
+        Mocks: payment_gateway.process_payment (should not be called)
+        """
+        # Create a mock payment gateway
+        mock_gateway = Mock(spec=PaymentGateway)
+        
+        # Stub calculate_late_fee_for_book to return dict without fee_amount
+        mocker.patch(
+            'services.library_service.calculate_late_fee_for_book',
+            return_value={'days_overdue': 5, 'status': 'Overdue'}
+        )
+        
+        # Call the function
+        success, message, transaction_id = pay_late_fees("123456", 1, mock_gateway)
+        
+        # Assertions
+        assert success is False
+        assert "Unable to calculate late fees" in message
+        assert transaction_id is None
+        
+        # Verify mock was NOT called
+        mock_gateway.process_payment.assert_not_called()
+    
+    def test_pay_late_fees_book_not_found(self, mocker):
+        """
+        Test pay_late_fees when book is not found.
+        Stubs: calculate_late_fee_for_book, get_book_by_id (returns None)
+        Mocks: payment_gateway.process_payment (should not be called)
+        """
+        # Create a mock payment gateway
+        mock_gateway = Mock(spec=PaymentGateway)
+        
+        # Stub calculate_late_fee_for_book
+        mocker.patch(
+            'services.library_service.calculate_late_fee_for_book',
+            return_value={
+                'fee_amount': 5.50,
+                'days_overdue': 3,
+                'status': 'Overdue'
+            }
+        )
+        
+        # Stub get_book_by_id to return None
+        mocker.patch(
+            'services.library_service.get_book_by_id',
+            return_value=None
+        )
+        
+        # Call the function
+        success, message, transaction_id = pay_late_fees("123456", 999, mock_gateway)
+        
+        # Assertions
+        assert success is False
+        assert "Book not found" in message
+        assert transaction_id is None
+        
+        # Verify mock was NOT called
+        mock_gateway.process_payment.assert_not_called()
+    
+    def test_pay_late_fees_default_gateway_creation(self, mocker):
+        """
+        Test pay_late_fees creates default PaymentGateway when None is provided.
+        Stubs: calculate_late_fee_for_book, get_book_by_id
+        Mocks: PaymentGateway initialization
+        """
+        # Stub calculate_late_fee_for_book
+        mocker.patch(
+            'services.library_service.calculate_late_fee_for_book',
+            return_value={
+                'fee_amount': 5.50,
+                'days_overdue': 3,
+                'status': 'Overdue'
+            }
+        )
+        
+        # Stub get_book_by_id
+        mocker.patch(
+            'services.library_service.get_book_by_id',
+            return_value={
+                'id': 1,
+                'title': 'Test Book',
+                'author': 'Test Author',
+                'isbn': '1234567890123',
+                'total_copies': 5,
+                'available_copies': 3
+            }
+        )
+        
+        # Mock PaymentGateway class
+        mock_gateway_instance = Mock()
+        mock_gateway_instance.process_payment.return_value = (True, "txn_123", "Success")
+        mocker.patch('services.library_service.PaymentGateway', return_value=mock_gateway_instance)
+        
+        # Call the function without providing gateway
+        success, message, transaction_id = pay_late_fees("123456", 1, None)
+        
+        # Assertions
+        assert success is True
+        assert transaction_id == "txn_123"
 
 
 class TestRefundLateFeePayment:
@@ -348,4 +477,203 @@ class TestRefundLateFeePayment:
         
         # Verify mock was called (positional arguments)
         mock_gateway.refund_payment.assert_called_once_with("txn_invalid_001", 5.50)
+    
+    def test_refund_late_fee_payment_default_gateway_creation(self, mocker):
+        """
+        Test refund_late_fee_payment creates default PaymentGateway when None is provided.
+        Mocks: PaymentGateway initialization
+        """
+        # Mock PaymentGateway class
+        mock_gateway_instance = Mock()
+        mock_gateway_instance.refund_payment.return_value = (True, "Refund successful")
+        mocker.patch('services.library_service.PaymentGateway', return_value=mock_gateway_instance)
+        
+        # Call the function without providing gateway
+        success, message = refund_late_fee_payment("txn_123456_001", 5.50, None)
+        
+        # Assertions
+        assert success is True
+        assert "Refund successful" in message
+    
+    def test_refund_late_fee_payment_exception_handling(self, mocker):
+        """
+        Test refund_late_fee_payment handles exceptions from gateway.
+        Mocks: payment_gateway.refund_payment (raises exception)
+        """
+        # Create a mock payment gateway that raises an exception
+        mock_gateway = Mock(spec=PaymentGateway)
+        mock_gateway.refund_payment.side_effect = ConnectionError("Network error")
+        
+        # Call the function
+        success, message = refund_late_fee_payment("txn_123456_001", 5.50, mock_gateway)
+        
+        # Assertions
+        assert success is False
+        assert "Refund processing error" in message
+        assert "Network error" in message
+
+
+class TestPaymentGateway:
+    """Test suite for PaymentGateway class from payment_service.py."""
+    
+    def test_init_default_api_key(self):
+        """Test PaymentGateway initialization with default API key."""
+        gateway = PaymentGateway()
+        assert gateway.api_key == "test_key_12345"
+        assert gateway.base_url == "https://api.payment-gateway.example.com"
+    
+    def test_init_custom_api_key(self):
+        """Test PaymentGateway initialization with custom API key."""
+        gateway = PaymentGateway(api_key="custom_key_123")
+        assert gateway.api_key == "custom_key_123"
+    
+    @patch('services.payment_service.time.sleep')
+    def test_process_payment_success(self, mock_sleep):
+        """Test successful payment processing."""
+        gateway = PaymentGateway()
+        success, transaction_id, message = gateway.process_payment("123456", 10.50, "Late fees")
+        
+        assert success is True
+        assert transaction_id.startswith("txn_123456_")
+        assert "Payment of $10.50 processed successfully" in message
+        mock_sleep.assert_called_once_with(0.5)
+    
+    @patch('services.payment_service.time.sleep')
+    def test_process_payment_zero_amount(self, mock_sleep):
+        """Test payment with zero amount."""
+        gateway = PaymentGateway()
+        success, transaction_id, message = gateway.process_payment("123456", 0, "Late fees")
+        
+        assert success is False
+        assert transaction_id == ""
+        assert "Invalid amount: must be greater than 0" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_process_payment_negative_amount(self, mock_sleep):
+        """Test payment with negative amount."""
+        gateway = PaymentGateway()
+        success, transaction_id, message = gateway.process_payment("123456", -10.50, "Late fees")
+        
+        assert success is False
+        assert transaction_id == ""
+        assert "Invalid amount: must be greater than 0" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_process_payment_amount_exceeds_limit(self, mock_sleep):
+        """Test payment with amount exceeding $1000 limit."""
+        gateway = PaymentGateway()
+        success, transaction_id, message = gateway.process_payment("123456", 1001.00, "Late fees")
+        
+        assert success is False
+        assert transaction_id == ""
+        assert "Payment declined: amount exceeds limit" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_process_payment_invalid_patron_id_short(self, mock_sleep):
+        """Test payment with invalid patron ID (too short)."""
+        gateway = PaymentGateway()
+        success, transaction_id, message = gateway.process_payment("12345", 10.50, "Late fees")
+        
+        assert success is False
+        assert transaction_id == ""
+        assert "Invalid patron ID format" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_process_payment_invalid_patron_id_long(self, mock_sleep):
+        """Test payment with invalid patron ID (too long)."""
+        gateway = PaymentGateway()
+        success, transaction_id, message = gateway.process_payment("1234567", 10.50, "Late fees")
+        
+        assert success is False
+        assert transaction_id == ""
+        assert "Invalid patron ID format" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_process_payment_empty_description(self, mock_sleep):
+        """Test payment with empty description."""
+        gateway = PaymentGateway()
+        success, transaction_id, message = gateway.process_payment("123456", 10.50, "")
+        
+        assert success is True
+        assert transaction_id.startswith("txn_123456_")
+    
+    @patch('services.payment_service.time.sleep')
+    def test_refund_payment_success(self, mock_sleep):
+        """Test successful refund processing."""
+        gateway = PaymentGateway()
+        success, message = gateway.refund_payment("txn_123456_001", 10.50)
+        
+        assert success is True
+        assert "Refund of $10.50 processed successfully" in message
+        assert "Refund ID: refund_txn_123456_001_" in message
+        mock_sleep.assert_called_once_with(0.5)
+    
+    @patch('services.payment_service.time.sleep')
+    def test_refund_payment_invalid_transaction_id_empty(self, mock_sleep):
+        """Test refund with empty transaction ID."""
+        gateway = PaymentGateway()
+        success, message = gateway.refund_payment("", 10.50)
+        
+        assert success is False
+        assert "Invalid transaction ID" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_refund_payment_invalid_transaction_id_format(self, mock_sleep):
+        """Test refund with invalid transaction ID format."""
+        gateway = PaymentGateway()
+        success, message = gateway.refund_payment("INVALID_123", 10.50)
+        
+        assert success is False
+        assert "Invalid transaction ID" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_refund_payment_zero_amount(self, mock_sleep):
+        """Test refund with zero amount."""
+        gateway = PaymentGateway()
+        success, message = gateway.refund_payment("txn_123456_001", 0)
+        
+        assert success is False
+        assert "Invalid refund amount" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_refund_payment_negative_amount(self, mock_sleep):
+        """Test refund with negative amount."""
+        gateway = PaymentGateway()
+        success, message = gateway.refund_payment("txn_123456_001", -10.50)
+        
+        assert success is False
+        assert "Invalid refund amount" in message
+    
+    @patch('services.payment_service.time.sleep')
+    def test_verify_payment_status_success(self, mock_sleep):
+        """Test successful payment status verification."""
+        gateway = PaymentGateway()
+        result = gateway.verify_payment_status("txn_123456_001")
+        
+        assert isinstance(result, dict)
+        assert result["status"] == "completed"
+        assert result["transaction_id"] == "txn_123456_001"
+        assert "amount" in result
+        assert "timestamp" in result
+        mock_sleep.assert_called_once_with(0.3)
+    
+    @patch('services.payment_service.time.sleep')
+    def test_verify_payment_status_invalid_transaction_id(self, mock_sleep):
+        """Test payment status verification with invalid transaction ID."""
+        gateway = PaymentGateway()
+        result = gateway.verify_payment_status("INVALID_123")
+        
+        assert isinstance(result, dict)
+        assert result["status"] == "not_found"
+        assert "Transaction not found" in result["message"]
+    
+    @patch('services.payment_service.time.sleep')
+    def test_verify_payment_status_empty_transaction_id(self, mock_sleep):
+        """Test payment status verification with empty transaction ID."""
+        gateway = PaymentGateway()
+        result = gateway.verify_payment_status("")
+        
+        assert isinstance(result, dict)
+        assert result["status"] == "not_found"
+        assert "Transaction not found" in result["message"]
 

@@ -2,7 +2,7 @@ import pytest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from library_service import (
+from services.library_service import (
     search_books_in_catalog
 )
 

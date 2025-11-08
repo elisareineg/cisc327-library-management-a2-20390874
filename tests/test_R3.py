@@ -3,7 +3,7 @@ import pytest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from library_service import borrow_book_by_patron
+from services.library_service import borrow_book_by_patron
 from database import get_db_connection
 
 def test_book_borrow_success():
