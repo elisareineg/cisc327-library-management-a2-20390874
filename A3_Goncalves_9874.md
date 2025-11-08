@@ -2,7 +2,7 @@
 
 **Name:** Elisa Goncalves  
 **Student ID:** 20390874
-
+**Github Link**: https://github.com/elisareineg/cisc327-library-management-a2-20390874
 ---
 
 ## Section 2 - Stubbing vs Mocking Explanation (200-300 words)
@@ -150,6 +150,7 @@ The main uncovered areas were:
 To improve coverage, I added the following test classes and methods:
 
 1. **TestPaymentGateway class** (17 new tests):
+
    - Tests for `__init__()` with default and custom API keys
    - Tests for `process_payment()` covering all validation paths and success
    - Tests for `refund_payment()` covering all validation paths and success
@@ -157,6 +158,7 @@ To improve coverage, I added the following test classes and methods:
    - All tests use `@patch('services.payment_service.time.sleep')` to avoid actual delays
 
 2. **Additional tests in TestPayLateFees class** (4 new tests):
+
    - `test_pay_late_fees_no_fee_info` - covers line 186
    - `test_pay_late_fees_missing_fee_amount_key` - covers line 186
    - `test_pay_late_fees_book_not_found` - covers line 196
@@ -168,7 +170,7 @@ To improve coverage, I added the following test classes and methods:
 
 ### Final Coverage
 
-**Final Coverage: 85%** 
+**Final Coverage: 85%**
 
 After adding comprehensive tests:
 
@@ -233,7 +235,7 @@ The following lines remain uncovered with justification:
 6. **Abstract Base Class Coverage:**
 
    - **Problem:** `payment_gateway.py` showed 0% coverage because it's an abstract base class.
-   - **Solution:** Documented this as legitimately uncovered code since abstract classes cannot be instantiated and are design patterns, not executable business logic, although this was something I was confused about at first. 
+   - **Solution:** Documented this as legitimately uncovered code since abstract classes cannot be instantiated and are design patterns, not executable business logic, although this was something I was confused about at first.
 
 7. **Expected Test Failures from Stubbed Functions:**
    - **Problem:** When running all tests (`pytest tests/`), tests for R3, R4, R5, R6, and R7 fail because these functions are intentionally stubbed in `library_service.py` with `TODO` comments. I didn't understand at first whether this should be happening, but since there are TODO notes for future assignments, I realized these failures were intentional with stubbing.
@@ -258,7 +260,6 @@ The following lines remain uncovered with justification:
 ![All 35 tests passing](screenshots/all_tests_passing.png)
 
 ### Screenshot 2: Coverage Terminal Output
-
 
 **Screenshot:**
 ![Code Coverage Report](screenshots/coverage_report.png)
