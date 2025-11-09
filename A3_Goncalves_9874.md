@@ -3,6 +3,7 @@
 **Name:** Elisa Goncalves  
 **Student ID:** 20390874
 **Github Link**: https://github.com/elisareineg/cisc327-library-management-a2-20390874
+
 ---
 
 ## Section 2 - Stubbing vs Mocking Explanation (200-300 words)
@@ -50,11 +51,14 @@ pytest --cov=services --cov-report=term --cov-report=html tests/
 ### Generating Coverage Reports
 
 ```bash
-# Generate terminal coverage report
+# Generate total terminal coverage report
 pytest --cov=services --cov-report=term tests/
 
 # Generate HTML coverage report
 pytest --cov=services --cov-report=html tests/
+
+# Generate only stubbing/mocking coverage
+pytest --cov=services --cov-report=term tests/test_stubbing_mocking.py
 
 # View HTML report (after generation)
 open htmlcov/index.html
@@ -128,6 +132,8 @@ When I first ran coverage analysis, the services folder had the following covera
 
 **Total: 64% coverage**
 
+![Initial Coverage Report (64%)](screenshots/initial_coverage.png)
+
 ### Uncovered Code Paths Initially
 
 The main uncovered areas were:
@@ -170,20 +176,20 @@ To improve coverage, I added the following test classes and methods:
 
 ### Final Coverage
 
-**Final Coverage: 85%**
+**Final Coverage: 88%**
 
 After adding comprehensive tests:
 
 - `services/__init__.py`: 100%
-- `services/library_service.py`: 96% (4 lines missing)
+- `services/library_service.py`: 94% (12 lines missing)
 - `services/payment_gateway.py`: 0% (17 lines - abstract base class, legitimately uncovered)
 - `services/payment_service.py`: 100%
 
-**Total: 85% coverage**
+**Total: 88% coverage**
 
 ### Statement and Branch Coverage
 
-- **Statement Coverage: 85%** - 115 out of 136 statements covered
+- **Statement Coverage: 88%** - 208 out of 237 statements covered
 - **Branch Coverage: ~90%** - Most decision points (if/else, try/except) tested with both outcomes
 
 ### Remaining Uncovered Lines
@@ -254,12 +260,16 @@ The following lines remain uncovered with justification:
 
 ## Section 7 - Screenshots
 
-### Screenshot 1: All Tests Passing
+## Screenshot 1: All tests Passing:
+
+![All 35 tests passing](screenshots/all_tests.png)
+
+### Screenshot 2: All Stubbing/Mocking Tests Passing
 
 **Screenshot:**
 ![All 35 tests passing](screenshots/all_tests_passing.png)
 
-### Screenshot 2: Coverage Terminal Output
+### Screenshot 3: Coverage Terminal Output
 
 **Screenshot:**
 ![Code Coverage Report](screenshots/coverage_report.png)
@@ -267,5 +277,5 @@ The following lines remain uncovered with justification:
 The screenshot shows the terminal output with the code coverage report, displaying:
 
 - Individual file coverage percentages
-- Overall coverage of **85%** (136 statements, 21 missed)
+- Overall coverage of **88%** (237 statements, 29 missed)
 - Coverage breakdown for each service module
