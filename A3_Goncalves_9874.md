@@ -121,18 +121,18 @@ The HTML coverage report will be generated in the `htmlcov/` directory. Open `ht
 
 ### Initial Coverage
 
-**Initial Coverage: 64%**
+**Initial Coverage: 76%**
 
 When I first ran coverage analysis, the services folder had the following coverage:
 
 - `services/__init__.py`: 100%
-- `services/library_service.py`: 89% (10 lines missing)
+- `services/library_service.py`: 91% (18 lines missing)
 - `services/payment_gateway.py`: 0% (17 lines - abstract base class)
 - `services/payment_service.py`: 27% (22 lines missing)
 
-**Total: 64% coverage**
+**Total: 76% coverage** (237 statements, 57 missed)
 
-![Initial Coverage Report (64%)](screenshots/initial_coverage.png)
+![Initial Coverage Report (76%)](screenshots/initial_coverage.png)
 
 ### Uncovered Code Paths Initially
 
@@ -220,7 +220,7 @@ The following lines remain uncovered with justification:
 
 2. **Coverage Difficulties:**
 
-   - **Problem:** Initial coverage was only 64%, and we needed to reach 80%+. The `payment_service.py` module had only 27% coverage.
+   - **Problem:** Initial coverage was 76%, and we needed to reach 80%+. The `payment_service.py` module had only 27% coverage.
    - **Solution:** Added comprehensive tests for the `PaymentGateway` class covering all methods, validation paths, and edge cases. Used `@patch` to mock `time.sleep()` to avoid actual delays in tests.
 
 3. **Stubbing vs Mocking Confusion:**
@@ -278,4 +278,3 @@ The screenshot shows the terminal output with the code coverage report, displayi
 
 - Individual file coverage percentages
 - Overall coverage of **88%** (237 statements, 29 missed)
-- Coverage breakdown for each service module
