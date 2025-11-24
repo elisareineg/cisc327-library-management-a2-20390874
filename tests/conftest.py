@@ -43,13 +43,22 @@ def setup_test_database():
 def flask_app_server():
     """
     Start Flask application server in a separate thread for E2E tests.
-    The server runs on http://localhost:5000
+    Uses port 5001 to avoid conflicts with AirPlay on macOS.
     """
+    import socket
+    
+    # Find an available port
+    def find_free_port():
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('', 0))
+            return s.getsockname()[1]
+    
+    port = find_free_port()
     app = create_app()
     
     # Disable Flask's reloader for testing
     def run_server():
-        app.run(host='127.0.0.1', port=5000, debug=False, use_reloader=False)
+        app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
     
     # Start server in a daemon thread
     server_thread = threading.Thread(target=run_server, daemon=True)
@@ -57,16 +66,17 @@ def flask_app_server():
     
     # Wait for server to be ready
     max_attempts = 30
+    base_url = f'http://localhost:{port}'
     for attempt in range(max_attempts):
         try:
-            response = requests.get('http://localhost:5000/', timeout=1)
+            response = requests.get(base_url, timeout=1)
             if response.status_code in [200, 404, 500]:  # Any response means server is up
                 break
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             time.sleep(0.1)
     else:
-        raise RuntimeError("Flask server failed to start within 3 seconds")
+        raise RuntimeError(f"Flask server failed to start on port {port} within 3 seconds")
     
-    yield
+    yield base_url
     
     # Server will be killed when thread exits (daemon thread)
