@@ -74,8 +74,8 @@ def flask_app_server():
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
     
-    # Wait for server to be ready
-    max_attempts = 30
+    # Wait for server to be ready (increased timeout for CI environments like MAC)
+    max_attempts = 100  # 100 * 0.1s = 10 seconds total timeout
     base_url = f'http://localhost:{port}'
     for attempt in range(max_attempts):
         try:
@@ -85,7 +85,7 @@ def flask_app_server():
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             time.sleep(0.1)
     else:
-        raise RuntimeError(f"Flask server failed to start on port {port} within 3 seconds")
+        raise RuntimeError(f"Flask server failed to start on port {port} within 10 seconds")
     
     yield base_url
     
