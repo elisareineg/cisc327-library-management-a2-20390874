@@ -32,6 +32,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install Playwright browsers (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          python -m playwright install --with-deps chromium
+
+      - name: Install Playwright browsers (macOS/Windows)
+        if: runner.os != 'Linux'
+        run: |
+          python -m playwright install chromium
+
       - name: Verify Python version and dependencies
         run: |
           python --version

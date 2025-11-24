@@ -23,8 +23,14 @@ def setup_test_database():
     This ensures test isolation and prevents tests from interfering with each other.
     """
     # Remove existing database if it exists
-    if os.path.exists(DATABASE):
-        os.remove(DATABASE)
+    try:
+        if os.path.exists(DATABASE):
+            os.remove(DATABASE)
+    except (OSError, PermissionError):
+        # If file is locked, wait a moment and try again
+        time.sleep(0.1)
+        if os.path.exists(DATABASE):
+            os.remove(DATABASE)
     
     # Initialize fresh database with schema
     init_database()
@@ -35,8 +41,12 @@ def setup_test_database():
     yield
     
     # Cleanup after test
-    if os.path.exists(DATABASE):
-        os.remove(DATABASE)
+    try:
+        if os.path.exists(DATABASE):
+            os.remove(DATABASE)
+    except (OSError, PermissionError):
+        # File might be locked, ignore cleanup errors
+        pass
 
 
 @pytest.fixture(scope="function")
