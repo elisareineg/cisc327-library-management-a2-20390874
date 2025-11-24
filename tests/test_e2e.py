@@ -1,4 +1,5 @@
 from playwright.sync_api import Page, expect
+import requests
 
 
 def test_add_book_to_catalog_and_verify(page: Page, flask_app_server):
@@ -18,16 +19,15 @@ def test_add_book_to_catalog_and_verify(page: Page, flask_app_server):
     # Verify we're on the add book page
     expect(page.locator("h2")).to_have_text("➕ Add New Book")
     
-    # Fill in the form with unique ISBN to avoid conflicts
-    import time
-    unique_isbn = f"978{int(time.time() * 1000) % 10000000000:010d}"
+    # Fill in the form
     test_title = "The Great Gatsby"
     test_author = "F. Scott Fitzgerald"
+    test_isbn = "9781234567890"
     test_copies = "3"
     
     page.fill('input[name="title"]', test_title)
     page.fill('input[name="author"]', test_author)
-    page.fill('input[name="isbn"]', unique_isbn)
+    page.fill('input[name="isbn"]', test_isbn)
     page.fill('input[name="total_copies"]', test_copies)
     
     # Submit the form and wait for navigation
@@ -46,14 +46,14 @@ def test_add_book_to_catalog_and_verify(page: Page, flask_app_server):
     # Verify the book appears in the catalog table
     expect(page.locator("table")).to_be_visible()
     
-    # Check that the book appears in the table (find by unique ISBN)
-    book_row = page.locator(f"table tbody tr:has-text('{unique_isbn}')")
+    # Check that the book appears in the table (find by ISBN)
+    book_row = page.locator(f"table tbody tr:has-text('{test_isbn}')")
     expect(book_row).to_be_visible()
     
     # Verify book details in the table
     expect(book_row.locator("td").nth(1)).to_have_text(test_title)  # Title column
     expect(book_row.locator("td").nth(2)).to_have_text(test_author)  # Author column
-    expect(book_row.locator("td").nth(3)).to_have_text(unique_isbn)  # ISBN column
+    expect(book_row.locator("td").nth(3)).to_have_text(test_isbn)  # ISBN column
 
 
 def test_borrow_book_from_catalog(page: Page, flask_app_server):
@@ -142,13 +142,10 @@ def test_complete_add_and_borrow(page: Page, flask_app_server):
     page.click("text=➕ Add New Book")
     expect(page.locator("h2")).to_have_text("➕ Add New Book")
     
-    # Fill form with unique ISBN to avoid conflicts
-    import time
-    unique_isbn = f"978{int(time.time()) % 10000000000:010d}"
-    
+    # Fill form with random ISBN numbers
     page.fill('input[name="title"]', "E2E Test Book")
     page.fill('input[name="author"]', "Test Author")
-    page.fill('input[name="isbn"]', unique_isbn)
+    page.fill('input[name="isbn"]', "9789999999999")
     page.fill('input[name="total_copies"]', "5")
     
     with page.expect_navigation():
@@ -166,9 +163,26 @@ def test_complete_add_and_borrow(page: Page, flask_app_server):
     borrow_form = book_row.locator('form[action*="borrow"]')
     expect(borrow_form).to_be_visible()
     
+    # Wait for form to be fully ready (helps with Windows CI)
+    page.wait_for_timeout(800)
+    
+    # Verify server is still accessible before borrowing
+    try:
+        requests.get(base_url, timeout=2)
+    except requests.exceptions.RequestException:
+        raise RuntimeError(f"Flask server at {base_url} is not accessible before borrow operation")
+    
     borrow_form.locator('input[name="patron_id"]').fill("999999")
-    with page.expect_navigation():
+    
+    # Wait a bit after filling the form before clicking
+    page.wait_for_timeout(500)
+    
+    # Click borrow button and wait for navigation (increased timeout for CI environments)
+    # Use longer timeout on Windows where server might be slower
+    with page.expect_navigation(timeout=30000):
         borrow_form.locator('button:has-text("Borrow")').click()
+    
+    # Wait for page to fully load
     page.wait_for_load_state("networkidle")
     
     # Step 5: Verify borrow confirmation

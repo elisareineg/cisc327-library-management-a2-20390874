@@ -68,11 +68,21 @@ def flask_app_server():
     
     # Disable Flask's reloader for testing
     def run_server():
-        app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
+        try:
+            # Use threaded=True for better Windows compatibility
+            app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False, threaded=True)
+        except Exception as e:
+            # Log server errors but don't crash the thread
+            print(f"Flask server error: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Start server in a daemon thread
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
+    
+    # Give the thread a moment to initialize
+    time.sleep(0.3)
     
     # Wait for server to be ready (increased timeout for CI environments like MAC)
     max_attempts = 100  # 100 * 0.1s = 10 seconds total timeout
