@@ -6,11 +6,15 @@ Handles database setup and teardown for test isolation.
 import pytest
 import os
 import sys
+import threading
+import time
+import requests
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import init_database, add_sample_data, DATABASE
+from app import create_app
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_test_database():
@@ -33,3 +37,36 @@ def setup_test_database():
     # Cleanup after test
     if os.path.exists(DATABASE):
         os.remove(DATABASE)
+
+
+@pytest.fixture(scope="function")
+def flask_app_server():
+    """
+    Start Flask application server in a separate thread for E2E tests.
+    The server runs on http://localhost:5000
+    """
+    app = create_app()
+    
+    # Disable Flask's reloader for testing
+    def run_server():
+        app.run(host='127.0.0.1', port=5000, debug=False, use_reloader=False)
+    
+    # Start server in a daemon thread
+    server_thread = threading.Thread(target=run_server, daemon=True)
+    server_thread.start()
+    
+    # Wait for server to be ready
+    max_attempts = 30
+    for attempt in range(max_attempts):
+        try:
+            response = requests.get('http://localhost:5000/', timeout=1)
+            if response.status_code in [200, 404, 500]:  # Any response means server is up
+                break
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            time.sleep(0.1)
+    else:
+        raise RuntimeError("Flask server failed to start within 3 seconds")
+    
+    yield
+    
+    # Server will be killed when thread exits (daemon thread)
