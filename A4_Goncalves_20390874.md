@@ -4,7 +4,7 @@
 
 ##### Nov 24, 2025
 
-https://github.com/elisareineg/cisc327-library-management-a2-20390874
+## https://github.com/elisareineg/cisc327-library-management-a2-20390874
 
 ---
 
@@ -65,12 +65,12 @@ docker run -d -p 5000:5000 library-app
 
 ### 3. Test Case Summary
 
-| Test Case                               | Actions                                                                                                                                                           | Expected Results                                                                                                                                                                                                                                           |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **test_add_book_to_catalog_and_verify** | 1. Navigate to catalog page<br>2. Click "Add New Book"<br>3. Fill form (title, author, ISBN, copies)<br>4. Submit form<br>5. Verify book appears in table         | • Catalog page loads with heading "📖 Book Catalog"<br>• Add book page displays<br>• Success flash message appears ("successfully added")<br>• Book appears in catalog table with correct details<br>• Book details (title, author, ISBN) match form input |
-| **test_borrow_book_from_catalog**       | 1. Navigate to catalog page<br>2. Find first book with borrow form<br>3. Enter patron ID (6 digits)<br>4. Click "Borrow" button<br>5. Verify availability changes | • Catalog page loads<br>• Borrow form is visible<br>• Success/error flash message appears<br>• If successful: "Successfully borrowed [book title]" message<br>• Book availability decreases by 1<br>• If error: Appropriate error message displayed        |
-| **test_complete_add_and_borrow**        | 1. Navigate to catalog<br>2. Add new book to catalog<br>3. Verify book appears<br>4. Borrow the newly added book<br>5. Verify borrow confirmation                 | • Book successfully added and visible<br>• Success message for book addition<br>• Borrow operation completes<br>• Success message for borrowing<br>• Both operations reflect in UI                                                                         |
-| **test_homepage_loads**                 | 1. Navigate to homepage (root URL)<br>2. Verify redirect                                                                                                          | • Homepage redirects to `/catalog`<br>• Catalog page heading visible<br>• Page content loads correctly                                                                                                                                                     |
+| Test Case                               | Actions                                                                                                                                                          | Expected Results                                                                                                                                                                                                                           |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **test_add_book_to_catalog_and_verify** | 1. Navigate to catalog page<br>2. Click "Add New Book"<br>3. Fill form fields (title, author, ISBN, copies)<br>4. Submit form<br>5. Verify book appears in table | • Catalog page loads with heading "📖 Book Catalog"<br>• Add book page displays<br>• Success flash message: "successfully added"<br>• Book appears in catalog table<br>• Book details (title, author, ISBN) match input                    |
+| **test_borrow_book_from_catalog**       | 1. Navigate to catalog page<br>2. Find first book with borrow form<br>3. Enter 6-digit patron ID<br>4. Click "Borrow" button<br>5. Verify availability changes   | • Catalog page loads<br>• Borrow form visible<br>• Success/error flash message appears<br>• If successful: "Successfully borrowed [book title]" message and availability decreases by 1<br>• If error: Appropriate error message displayed |
+| **test_complete_add_and_borrow**        | 1. Navigate to catalog<br>2. Add new book to catalog<br>3. Verify book appears<br>4. Borrow the newly added book<br>5. Verify borrow confirmation                | • Book successfully added and visible<br>• Success message for book addition<br>• Borrow operation completes<br>• Success message for borrowing<br>• Both operations reflected in UI                                                       |
+| **test_homepage_loads**                 | 1. Navigate to homepage (root URL)<br>2. Verify redirect                                                                                                         | • Homepage redirects to `/catalog`<br>• Catalog page heading visible<br>• Page content loads correctly                                                                                                                                     |
 
 ---
 
@@ -103,7 +103,7 @@ tests/test_e2e.py::test_homepage_loads[chromium] PASSED
 
 ## Dockerfile Overview
 
-- **Base Image:** `python:3.11-slim` 
+- **Base Image:** `python:3.11-slim`
 - **Port:** Exposed port 5000
 - **Database:** SQLite database automatically initialized on startup via `create_app()`
 - **Security:** Runs as non-privileged user (`appuser`)
@@ -139,9 +139,9 @@ This command:
 
 **Screenshots:**
 
-![Docker Run](screenshots/docker_run.png)
+![Docker Run](./screenshots/docker_run.png)
 
-![Docker Run 2](screenshots/docker_run2.png)
+![Docker Run 2](./screenshots/docker_run2.png)
 
 ### Docker Hub Deployment
 
@@ -165,7 +165,7 @@ docker push <dockerhub-username>/library-app:latest
 
 **Screenshot - Successful Push:**
 
-![Docker Push](screenshots/docker_push.png)
+![Docker Push](./screenshots/docker_push.png)
 
 #### Step 4: Pull from Docker Hub
 
@@ -178,7 +178,7 @@ docker run -p 5000:5000 <dockerhub-username>/library-app:latest
 
 **Screenshot - Successful Pull:**
 
-![Docker Pull](screenshots/docker_pull.png)
+![Docker Pull](./screenshots/docker_pull.png)
 
 #### Step 5: Delete Local Image
 
@@ -190,7 +190,7 @@ docker rmi <dockerhub-username>/library-app:latest
 
 **Screenshot - Successful Delete:**
 
-![Docker Delete](screenshots/docker_delete.png)
+![Docker Delete](./screenshots/docker_delete.png)
 
 ---
 
